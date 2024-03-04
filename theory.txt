@@ -1,0 +1,6 @@
+Development environment for development purposes
+export FLASK_APP=app.py to set the app variable
+export FLASK_ENV=development to set environment variable
+=production for production environment
+
+Now we can directly do flask run
