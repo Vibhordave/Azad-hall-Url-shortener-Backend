@@ -5,7 +5,7 @@ import jwt,bcrypt
 from uuid import uuid4 as uuid
 from fastapi import APIRouter, Depends, HTTPException, Request, status, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-
+from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
 router=APIRouter()
 
 async def signup(request: User.SignUPUserSchema):
@@ -21,13 +21,20 @@ async def signup(request: User.SignUPUserSchema):
         "password": hashed_password,
         "name": request.username
     }
-    session={
-        "id": user["id"],
-        "logged_in":1
-    }
-    await sessionDb.insert_one(session)
+    
     await userDb.insert_one(user)
-    return {"message": "User created successfully.", "user": user}
+    return jsonify({"message": "User created successfully.", "user": user}),200
+
+async def signout(session: Session.SessionSchema):
+    s_id=session.jwt_token
+    ses=await sessionDb.find_one({"jwt_token":s_id})
+    sessions=await sessionDb.find({"id":ses["id"]})
+    if ses is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User Not signed in.")
+    for a in sessions:
+        await sessionDb.delete_one({"id":a["id"]})
+
+    return jsonify({'status': 'success'}),200
 
 async def login(payload: User.LoginUserSchema):
     db_user = await User.find_one({'email': payload.email.lower()})
@@ -45,25 +52,12 @@ async def login(payload: User.LoginUserSchema):
 
     if not bcrypt.checkpw(payload.password.encode('utf-8'), hashed_password.encode('utf-8')):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Incorrect email or password')
+    session={
+        "id": user_id,
+        "logged_in":1
+    }
+    await sessionDb.insert_one(session)
+    return jsonify({'status': 'success'}),200
 
-    
-    token = jwt.encode(payload={"user_id": user_id}, key=config["JWT_KEY"], algorithm="HS256")
 
-    return {'status': 'success', 'token': token}
-
-
-security = HTTPBearer()
-
-async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Security(security)
-) -> dict:
-    token = credentials.credentials
-    try:
-        token_data = jwt.decode(token, config["JWT_KEY"], algorithms=["HS256"])
-    except jwt.PyJWTError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-    user = await User.find_one({'id': token_data["user_id"]})
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-
-    return user
+# Find whose session is active
