@@ -1,8 +1,9 @@
 from flask import Flask
-from pymongo import MongoClient
+from flask_pymongo import PyMongo
+from app import app
 
-client = MongoClient('localhost', 27017)
+app.config["MONGO_URI"]="mongodb+srv://vibhordave03:1234@cluster0.wanrwwp.mongodb.net/Azad_Url"
+db=PyMongo(app).db
 
-db = client.flask_db
 userDb = db.User
 sessionDb=db.Session
