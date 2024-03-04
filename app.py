@@ -6,27 +6,10 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
-import secrets
-secret_key = secrets.token_hex(16)  # Generates a 32-character hexadecimal string
 
 app = Flask(__name__)
 
-# Configurations
-app.config['SECRET_KEY'] = secret_key
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///User.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'vibhor.dave03@gmail.com'
-app.config['MAIL_PASSWORD'] = 'divashvib@123'
 
-mail = Mail(app)
-db = SQLAlchemy(app)
-login_manager = LoginManager(app)
-login_manager.login_view = 'login'
-
-serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
 # Define the User model
 class User(UserMixin, db.Model):
@@ -35,20 +18,9 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(100), nullable=False)
     verified = db.Column(db.Boolean, default=False)
 
-# Google Blueprint
-google_bp = make_google_blueprint(
-    client_id="876096187874-5dpmo9bitehpl1ijbfs085etn9b4vj2i.apps.googleusercontent.com",
-    client_secret="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",
-    redirect_to="google_login"
-)
-app.register_blueprint(google_bp, url_prefix="/login")
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
 
 @app.route('/')
-@login_required
 def home():
     return render_template('home.html')
 
