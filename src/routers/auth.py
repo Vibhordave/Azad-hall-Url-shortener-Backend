@@ -1,6 +1,8 @@
-from ..schemas import userSchema as User 
-from ..schemas import sessionSchema as Session
-from ..database.mongo import userDb,sessionDb
+import sys
+sys.path.append('../')
+from src.schemas import userSchema as User 
+from src.schemas import sessionSchema as Session
+from src.database.mongo import userDb,sessionDb
 import jwt,bcrypt
 from uuid import uuid4 as uuid
 from fastapi import APIRouter, Depends, HTTPException, Request, status, Security

@@ -1,3 +1,5 @@
+import sys
+sys.path.append('../../')
 from flask import Flask
 from flask_pymongo import PyMongo
 from app import app
@@ -7,3 +9,4 @@ db=PyMongo(app).db
 
 userDb = db.User
 sessionDb=db.Session
+urlDb=db.Urls
