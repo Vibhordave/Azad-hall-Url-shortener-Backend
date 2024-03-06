@@ -3,9 +3,14 @@ import os
 sys.path.insert(0, os.path.abspath('C:\\Users\\vibho\\OneDrive\Desktop\\Full Stack Using Flask'))
 sys.path.insert(1, os.path.abspath('C:\\Users\\vibho\\OneDrive\Desktop\\Full Stack Using Flask\\src'))
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
+from flask_cors import CORS
+
 
 
 app = Flask(__name__)
+CORS(app)
+
+
 if __name__ == '__main__':
     app.run(debug=True)
 

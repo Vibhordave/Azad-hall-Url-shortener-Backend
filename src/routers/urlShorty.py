@@ -9,13 +9,13 @@ def getLongUrl(shortUrl):
     longurl=urlDb.find_one({"short":shortUrl})
     if longurl is None:
         return jsonify({"status":"Url not found"}),404
-    return jsonify({"status":"success","long":longurl["long"]}),200
+    return jsonify({"status":"success","long":longurl["long"],"short":shortUrl,"count":longurl["counter"]}),200
 
 def getShortUrl(longUrl):
     shortUrl=urlDb.find_one({"long":longUrl})
     if shortUrl is None:
         return jsonify({"status":"Url not found"}),404
-    return jsonify({"status":"success","short":shortUrl["short"]}),200
+    return jsonify({"status":"success","long":shortUrl["long"],"short":shortUrl["short"],"count":shortUrl["counter"]}),200
 
 def redirect_to_url(shortUrl):
     longurl=urlDb.find_one({"short":shortUrl})
@@ -24,7 +24,7 @@ def redirect_to_url(shortUrl):
     if not ('http://' in longurl["long"] or 'https://' in longurl["long"]):
         longurl["long"]='https://'+longurl["long"]
     
-    longurl["counter"]=longurl["counter"]+1
+    urlDb.update_one({"short":shortUrl},{"$inc":{"counter":1}})
     return redirect(longurl["long"],code=302)
 
 def delUrl(id):
@@ -55,6 +55,9 @@ def convertUrl(longUrl):
     short=md5_hash(longUrl)
     if short == '0':
         return jsonify({"status":"Url Not entered"}),400
+    urlD=urlDb.find_one({"long":longUrl})
+    if urlD is not None:
+        return jsonify({"status":"Already exists"}),201
     url={
         "id":str(uuid()),
         "long":longUrl,
